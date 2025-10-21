@@ -1,15 +1,15 @@
-## lab7-vectormem
-## Vector Calculator V2
-# This program allows the user to perform math operations on vectors, using dynamci memory to store them.
+# lab7-vectormem
+# Vector Calculator V2
+## This program allows the user to perform math operations on vectors, using dynamic memory to store them.
 
-# To build:
+### To build:
 make clean
 make
 
-# To run:
+### To run:
 ./minimat
 
-# Supported commands:
+### Supported commands:
 add
 subtract
 multiply a vector by a number
@@ -20,5 +20,6 @@ display a vector
 clear saved vectors
 quit
 
-# Use of dynamic memory
+### Use of dynamic memory
+N/A yet
 
