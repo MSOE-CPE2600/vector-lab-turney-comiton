@@ -1,15 +1,13 @@
 #ifndef VECTOR_H
 #define VECTOR_H
-#define MAX_VECTORS 10
 
 struct vector {
-    char name[20];
-    double x;
-    double y;
-    double z;
+    char name[2];   
+    double x, y, z;
 };
 
-// Declare the global array and count
-extern struct vector vectArray[MAX_VECTORS];
+// Global dynamic array and count
+extern struct vector *vectArray;
 extern int vectCount;
+
 #endif

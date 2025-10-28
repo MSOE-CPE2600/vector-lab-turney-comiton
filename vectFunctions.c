@@ -1,199 +1,195 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include "vector.h"
+#include <ctype.h>
 #include "vectFunctions.h"
 
-// Define global array and count
-int vectCount = 1;
-struct vector vectArray[vectCount];
-struct vector *pointers[vectCount];
+struct vector *vectArray = NULL;
+int vectCount = 0;
+static int vectCapacity = 0;
 
-
-// Check if string is an operator
-int isOperator(const char *s) {
-    return strcmp(s, "+") == 0 ||
-           strcmp(s, "-") == 0 ||
-           strcmp(s, "*") == 0 ||
-           strcmp(s, "=") == 0;
+// helper
+static void ensureCapacity(void) {
+    if (vectCount >= vectCapacity) {
+        vectCapacity = (vectCapacity == 0) ? 4 : vectCapacity * 2;
+        struct vector *newArr = realloc(vectArray, vectCapacity * sizeof(struct vector));
+        if (!newArr) {
+            fprintf(stderr, "Memory allocation failed\n");
+            exit(1);
+        }
+        vectArray = newArr;
+    }
 }
 
-// Find vector by name
-struct vector* getVector(const char *name) {
+static struct vector *findVector(const char *name) {
     for (int i = 0; i < vectCount; i++) {
-        if (strcmp(vectArray[i].name, name) == 0) {
-            return &vectArray[i];
-        }
+        if (vectArray[i].name[0] == name[0]) return &vectArray[i];
     }
     return NULL;
 }
 
-// Add or update a vector
-void newVector(const char *X, const char *Y, const char *Z, const char *name) {
-    
-    double x = strtod(X, NULL);
-    double y = strtod(Y, NULL);
-    double z = strtod(Z, NULL);
-
-    // Update existing vector
-    struct vector *v = getVector(name);
-    if (v) {
-        v->x = x;
-        v->y = y;
-        v->z = z;
-        printf("Updated vector %s = [%.2f %.2f %.2f]\n", name, x, y, z);
+// initialize vector
+void newVector(const char *x, const char *y, const char *z, const char *name) {
+    struct vector *existing = findVector(name);
+    if (existing) {
+        existing->x = atof(x);
+        existing->y = atof(y);
+        existing->z = atof(z);
+        printf("Vector %s updated.\n", name);
         return;
     }
 
-    // Add new vector
-    
-    strcpy(vectArray[vectCount].name, name);
-    vectArray[vectCount].x = x;
-    vectArray[vectCount].y = y;
-    vectArray[vectCount].z = z;
+    ensureCapacity();
+    vectArray[vectCount].name[0] = name[0];
+    vectArray[vectCount].name[1] = '\0';
+    vectArray[vectCount].x = atof(x);
+    vectArray[vectCount].y = atof(y);
+    vectArray[vectCount].z = atof(z);
     vectCount++;
-    printf("Added vector %s = [%.2f %.2f %.2f]\n", name, x, y, z);
-    
+    printf("Vector %s added.\n", name);
 }
 
-// Vector operations
-
-// add
-void add(const char *v1Name, const char *v2Name, const char *destName) {
-    struct vector *v1 = malloc(sizeof(struct vector));
-    *v1 = getVector(v1Name);
-    
-    struct vector *v2 = malloc(sizeof(struct vector));
-    *v2 = getVector(v2Name);
-    
-    if (!v1 || !v2) {
-        printf("Error: missing operand.\n");
-        return;
-    }
-
-    if (!getVector(destName)) {
-        newVector("0", "0", "0", destName);
-    }
-
-    struct vector *dest = malloc(sizeof(struct vector));
-    *dest = getVector(destName);
-    dest->x = v1->x + v2->x;
-    dest->y = v1->y + v2->y;
-    dest->z = v1->z + v2->z;
-
-    printf("%s = [%.2f %.2f %.2f]\n", destName, dest->x, dest->y, dest->z);
-}
-// add but just display; not into a new vector
-void addDisplay(const char *v1Name, const char *v2Name) {
-    struct vector *v1 = malloc(sizeof(struct vector));
-    *v1 = getVector(v1Name);
-    
-    struct vector *v2 = malloc(sizeof(struct vector));
-    *v2 = getVector(v2Name);
-
-    if (!v1 || !v2) {
-        printf("Error: missing operand.\n");
-        return;
-    }
-
-    double x = v1->x + v2->x;
-    double y = v1->y + v2->y;
-    double z = v1->z + v2->z;
-
-    printf("ans = [%.2f %.2f %.2f]\n", x, y, z);
-}
-// subtract
-void subtract(const char *v1Name, const char *v2Name, const char *destName) {
-    struct vector *v1 = malloc(sizeof(struct vector));
-    *v1 = getVector(v1Name);
-    
-    struct vector *v2 = malloc(sizeof(struct vector));
-    *v2 = getVector(v2Name);
-
-    if (!v1 || !v2) {
-        printf("Error: missing operand.\n");
-        return;
-    }
-
-    if (!getVector(destName)) {
-        newVector("0", "0", "0", destName);
-    }
-    struct vector *dest = malloc(sizeof(struct vector));
-    *dest = getVector(destName);
-    dest->x = v1->x - v2->x;
-    dest->y = v1->y - v2->y;
-    dest->z = v1->z - v2->z;
-
-    printf("%s = [%.2f %.2f %.2f]\n", destName, dest->x, dest->y, dest->z);
-}
-// subtract but just display; not into a new vector
-void subtractDisplay(const char *v1Name, const char *v2Name) {
-    struct vector *v1 = malloc(sizeof(struct vector));
-    *v1 = getVector(v1Name);
-    
-    struct vector *v2 = malloc(sizeof(struct vector));
-    *v2 = getVector(v2Name);
-
-    if (!v1 || !v2) {
-        printf("Error: missing operand.\n");
-        return;
-    }
-
-    double x = v1->x - v2->x;
-    double y = v1->y - v2->y;
-    double z = v1->z - v2->z;
-
-    printf("ans = [%.2f %.2f %.2f]\n", x, y, z);
-}
-// multiply
-void multiply(const char *v1Name, const char *b, const char *destName) {
-    struct vector *v1 = malloc(sizeof(struct vector));
-    *v1 = getVector(v1Name);
-
-    if (!v1) {
-        printf("Error: missing operand.\n");
-        return;
-    }
-
-    double B = strtod(b, NULL);
-
-    if (!getVector(destName)) {
-        newVector("0", "0", "0", destName);
-    }
-
-    struct vector *dest = malloc(sizeof(struct vector));
-    *dest = getVector(destName);
-    dest->x = v1->x * B;
-    dest->y = v1->y * B;
-    dest->z = v1->z * B;
-
-    printf("%s = [%.2f %.2f %.2f]\n", destName, dest->x, dest->y, dest->z);
-}
-// multiply but just display; not into a new vector
-void multiplyDisplay(const char *v1Name, const char *b) {
-    struct vector *v1 = malloc(sizeof(struct vector));
-    *v1 = getVector(v1Name);
-
-    if (!v1) {
-        printf("Error: missing operand.\n");
-        return;
-    }
-    double B = strtod(b, NULL);
-
-    double x = v1->x * B;
-    double y = v1->y * B;
-    double z = v1->z * B;
-
-    printf("ans = [%.2f %.2f %.2f]\n", x, y, z);
-}
-// display a chosen vector
-void showVector(const char *name){
-    struct vector *v = malloc(sizeof(struct vector));
-    *v = getVector(name);
+void showVector(const char *name) {
+    struct vector *v = findVector(name);
     if (!v) {
-        printf("Error: vector not found.\n");
+        printf("Vector %s not found.\n", name);
         return;
     }
-    printf("%s = [%.2f %.2f %.2f]\n", name, v->x, v->y, v->z);
+    printf("%s = [%.2f %.2f %.2f]\n", v->name, v->x, v->y, v->z);
+}
+
+int isOperator(const char *s) {
+    return (strcmp(s, "+") == 0 || strcmp(s, "-") == 0 || strcmp(s, "*") == 0);
+}
+
+// operations
+void add(const char *v1, const char *v2, const char *result) {
+    struct vector *a = findVector(v1);
+    struct vector *b = findVector(v2);
+    if (!a || !b) {
+        printf("Error: vector not found.\n"); 
+        return;
+    }
+    char sx[32], sy[32], sz[32];
+    snprintf(sx, sizeof(sx), "%f", a->x + b->x);
+    snprintf(sy, sizeof(sy), "%f", a->y + b->y);
+    snprintf(sz, sizeof(sz), "%f", a->z + b->z);
+    newVector(sx, sy, sz, result);
+}
+
+void subtract(const char *v1, const char *v2, const char *result) {
+    struct vector *a = findVector(v1);
+    struct vector *b = findVector(v2);
+    if (!a || !b) { 
+        printf("Error: vector not found.\n"); 
+        return; 
+    }
+    char sx[32], sy[32], sz[32];
+    snprintf(sx, sizeof(sx), "%f", a->x - b->x);
+    snprintf(sy, sizeof(sy), "%f", a->y - b->y);
+    snprintf(sz, sizeof(sz), "%f", a->z - b->z);
+    newVector(sx, sy, sz, result);
+}
+
+void multiply(const char *v1, const char *v2, const char *result) {
+    struct vector *a = findVector(v1);
+    struct vector *b = findVector(v2);
+    if (!a || !b) { 
+        printf("Error: vector not found.\n"); 
+        return; 
+    }
+    double dot = a->x*b->x + a->y*b->y + a->z*b->z;
+    char sx[32];
+    snprintf(sx, sizeof(sx), "%f", dot);
+    newVector(sx, "0", "0", result);
+}
+
+// Display-only
+void addDisplay(const char *v1, const char *v2) {
+    struct vector *a = findVector(v1);
+    struct vector *b = findVector(v2);
+    if (!a || !b) { 
+        printf("Error: vector not found.\n"); 
+        return; 
+    }
+    printf("[%s + %s] = [%.2f %.2f %.2f]\n", v1, v2, a->x+b->x, a->y+b->y, a->z+b->z);
+}
+
+void subtractDisplay(const char *v1, const char *v2) {
+    struct vector *a = findVector(v1);
+    struct vector *b = findVector(v2);
+    if (!a || !b) { 
+        printf("Error: vector not found.\n"); 
+        return; 
+    }
+    printf("[%s - %s] = [%.2f %.2f %.2f]\n", v1, v2, a->x-b->x, a->y-b->y, a->z-b->z);
+}
+
+void multiplyDisplay(const char *v1, const char *v2) {
+    struct vector *a = findVector(v1);
+    struct vector *b = findVector(v2);
+    if (!a || !b) { 
+        printf("Error: vector not found.\n"); 
+        return; 
+    }
+    printf("[%s ⋅ %s] = %.2f\n", v1, v2, a->x*b->x + a->y*b->y + a->z*b->z);
+}
+
+// memory
+void clearVectors(void) {
+    free(vectArray);
+    vectArray = NULL;
+    vectCount = 0;
+    vectCapacity = 0;
+}
+
+// file I/O
+int loadFromFile(const char *filename) {
+    FILE *fp = fopen(filename, "r");
+    if (!fp) { 
+        perror("Error opening file"); 
+        return -1; 
+    }
+
+    clearVectors();
+
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+        // Remove trailing \r\n or \n
+        line[strcspn(line, "\r\n")] = 0;
+        if (strlen(line) == 0) continue;
+
+        char name[2], sx[32], sy[32], sz[32];
+        if (sscanf(line, "%1[^,],%31[^,],%31[^,],%31[^,]", name, sx, sy, sz) == 4) {
+            newVector(sx, sy, sz, name);
+        } else {
+            printf("Skipping malformed line: %s\n", line);
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+int saveToFile(const char *filename) {
+    FILE *fp = fopen(filename, "w");
+    if (!fp) { perror("Error opening file for write"); return -1; }
+
+    for (int i = 0; i < vectCount; i++) {
+        fprintf(fp, "%s,%.6f,%.6f,%.6f\n",
+                vectArray[i].name, vectArray[i].x, vectArray[i].y, vectArray[i].z);
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+// Exit handler to free memory
+static void freeOnExit(void) {
+    clearVectors();
+}
+
+// Register exit handler automatically
+__attribute__((constructor)) static void registerExitHandler(void) {
+    atexit(freeOnExit);
 }

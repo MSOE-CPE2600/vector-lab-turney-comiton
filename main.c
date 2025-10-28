@@ -1,108 +1,100 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+
 #include "vector.h"
 #include "vectFunctions.h"
 
 int main(int argc, char *argv[]) {
     printf("Welcome to vector calculator\n");
-    // -h flag for help
-    if (argc > 1 && strcmp(argv[1], "-h") == 0){
-            printf("This program allows you to initialize vectors, view them, perform \n");
-            printf("operations on them such as addition, subtraction, and scalar multiplication. \n");
-            printf("Simply type    a = x y z    in order to initialize a vector, or \n");
-            printf("c = b + a     to do an operation, for example. Enter 'quit' to quit\n");
-        
-        }
 
-    char input[100];
+    if (argc > 1 && strcmp(argv[1], "-h") == 0) {
+        printf("This program allows you to initialize vectors, view them, perform\n");
+        printf("operations on them such as addition, subtraction, and scalar multiplication.\n");
+        printf("Type:    a = x y z    to initialize a vector,\n");
+        printf("c = b + a     to do an operation, for example.\n");
+        printf("Commands: help, list, clear, load <fname>, save <fname>, quit\n");
+    }
+
+    char input[256];
     int quit = 0;
-        // loop until click
+
     while (!quit) {
         printf("minimat> ");
         if (!fgets(input, sizeof(input), stdin)) break;
-        input[strcspn(input, "\n")] = '\0';  // remove newline
 
-        // help
-        if (strcmp(input, "help") == 0){
-            printf("This program allows you to initialize vectors, view them, perform \n");
-            printf("operations on them such as addition, subtraction, and scalar multiplication. \n");
-            printf("Simply type    a = x y z    in order to initialize a vector, or \n");
-            printf("c = b + a     to do an operation, for example. Enter 'quit' to quit\n");
+        // trim trailing newline
+        input[strcspn(input, "\r\n")] = 0;
+
+        // skip leading spaces
+        char *line = input;
+        while (*line && isspace((unsigned char)*line)) line++;
+        if (*line == 0) continue;
+
+        if (strcmp(line, "help") == 0) {
+            printf("Commands: help, list, clear, load <fname>, save <fname>, quit\n");
             continue;
         }
-
-        // quit command
-        if (strcmp(input, "quit") == 0) {
+        if (strcmp(line, "quit") == 0){ 
             quit = 1;
             continue;
         }
-
-        // list command
-        if (strcmp(input, "list") == 0){
-            if(vectCount == 0){
-                printf("No vectors stored\n");
-                continue;
-            }
-
-            for(int i = 0; i < 10; i++){
-                printf("%s = [%.2f %.2f %.2f]\n", vectArray[i].name
-                                                , vectArray[i].x
-                                                , vectArray[i].y
-                                                , vectArray[i].z);
-
-            }
+        if (strcmp(line, "list") == 0) {
+            if (vectCount == 0) printf("No vectors stored\n");
+            else for (int i=0;i<vectCount;i++)
+                printf("%s = [%.2f %.2f %.2f]\n", vectArray[i].name,
+                       vectArray[i].x, vectArray[i].y, vectArray[i].z);
+            continue;
+        }
+        if (strcmp(line, "clear") == 0) {
+            clearVectors(); printf("All vectors removed\n");
             continue;
         }
 
-        // clear command
-        if(strcmp(input, "clear") == 0){
-            for(int i = 0; i < vectCount; i++){
-                free()
-            }
-            vectCount = 0;
-            printf("All vectors removed\n");
-
+        if (strncmp(line, "load ", 5) == 0) {
+            char *fname = line+5; while (*fname && isspace((unsigned char)*fname)) fname++;
+            if (*fname == 0) { printf("Usage: load <filename>\n"); continue; }
+            if (loadFromFile(fname) == 0) printf("Loaded %s\n", fname);
+            continue;
+        }
+        if (strncmp(line, "save ", 5) == 0) {
+            char *fname = line+5;
+            while (*fname && isspace((unsigned char)*fname)) fname++;
+            if (*fname == 0) { printf("Usage: save <filename>\n"); continue; }
+            if (saveToFile(fname) == 0) printf("Saved to %s\n", fname);
             continue;
         }
 
-        // Tokenize input
-        char *A = strtok(input, " ");
-        char *B = strtok(NULL, " ");
-        char *C = strtok(NULL, " ");
-        char *D = strtok(NULL, " ");
-        char *E = strtok(NULL, " ");
+        // tokenize input
+        char copy[256];
+        strncpy(copy, line, sizeof(copy)-1);
+        copy[sizeof(copy)-1] = 0;
+        char *A = strtok(copy," ");
+        char *B = strtok(NULL," ");
+        char *C = strtok(NULL," ");
+        char *D = strtok(NULL," ");
+        char *E = strtok(NULL," ");
 
         if (!A) continue;
+        if (!B && !C && !D && !E) { showVector(A); continue; }
 
-        // Single vector display: "a"
-        if (!B && !C && !D && !E) {
-            showVector(A);
-            continue;
-        }
-
-        // Assignment: "A = 1 2 3" or "A = B + C" or "A = B * k"
-        if (B && strcmp(B, "=") == 0) {
+        if (B && strcmp(B,"=")==0) {
             if (C && D && E && !isOperator(C) && !isOperator(D) && !isOperator(E)) {
-                // A = x y z
-                newVector(C, D, E, A);
+                newVector(C,D,E,A);
             } else if (C && D && E && isOperator(D)) {
-                // A = B + C, A = B - C, A = B * k
-                if (strcmp(D, "+") == 0) add(C, E, A);
-                else if (strcmp(D, "-") == 0) subtract(C, E, A);
-                else if (strcmp(D, "*") == 0) multiply(C, E, A);
-                else printf("Invalid input.\n");
-            } else {
-                printf("Invalid input.\n");
-            }
+                if (strcmp(D,"+")==0) add(C,E,A);
+                else if (strcmp(D,"-")==0) subtract(C,E,A);
+                else if (strcmp(D,"*")==0) multiply(C,E,A);
+                else printf("Invalid operator.\n");
+            } else { printf("Invalid input.\n"); }
             continue;
         }
 
-        // Operations without assignment: "A + B", "A * k", "A - B"
         if (B && C && !D && !E) {
-            if (strcmp(B, "+") == 0) addDisplay(A, C);
-            else if (strcmp(B, "-") == 0) subtractDisplay(A, C);
-            else if (strcmp(B, "*") == 0) multiplyDisplay(A, C);
+            if (strcmp(B,"+")==0) addDisplay(A,C);
+            else if (strcmp(B,"-")==0) subtractDisplay(A,C);
+            else if (strcmp(B,"*")==0) multiplyDisplay(A,C);
             else printf("Invalid input.\n");
             continue;
         }
