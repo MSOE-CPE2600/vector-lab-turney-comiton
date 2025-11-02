@@ -3,7 +3,7 @@ CFLAGS=-c -Wall
 LDFLAGS=
 SOURCES= main.c vectFunctions.c
 OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=dynamicmat
+EXECUTABLE=minimat
 
 all: $(SOURCES) $(EXECUTABLE) 
 
