@@ -21,5 +21,7 @@ clear saved vectors
 quit
 
 ### Use of dynamic memory
-N/A yet
+My program uses realloc to allocate memory for a constantly changing amount of vectors.
+Every time a new vector is added, the program reallocates the space needed to contain all
+of the existing vectors in addition to the new one.
 
