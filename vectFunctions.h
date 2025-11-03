@@ -1,3 +1,9 @@
+/*
+ * Filename: vectFunctions.h
+ * Author: Nicholas Comito
+ * Date: 10/24/2025
+ * Description: header file for functions for dynamic minimatlab
+ */
 #ifndef VECT_FUNCTIONS_H
 #define VECT_FUNCTIONS_H
 

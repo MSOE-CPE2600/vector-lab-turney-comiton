@@ -1,3 +1,9 @@
+/*
+ * Filename: vectFunctions.c
+ * Author: Nicholas Comito
+ * Date: 10/24/2025
+ * Description: functions for dynamic minimatlab
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

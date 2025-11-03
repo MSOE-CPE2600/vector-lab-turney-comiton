@@ -1,3 +1,9 @@
+/*
+ * Filename: main.c
+ * Author: Nicholas Comito
+ * Date: 10/24/2025
+ * Description: Driver for dynamic minimatlab
+ */
 #ifndef VECTOR_H
 #define VECTOR_H
 
